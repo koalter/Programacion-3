@@ -194,3 +194,111 @@ El operador "dos puntos" `::` es utilizado para acceder a los *miembros estátic
     // Métodos de clase.        Atributos estáticos.
     NombreClase::Func4();       NombreClase::$attr4;
 
+## Archivos
+
+### Abrir archivos  
+`fopen()`  
+Nos permite abrir un archivo ya sea de manera local o externa (http:// o ftp://)  
+* El primer parámetro de *fopen* contiene el nombre del archivo a ser abierto, y el segundo especifica el modo en que el archivo será abierto  
+* El valor de retorno de *fopen* es un entero. Nos servirá para referenciar al archivo abierto.
+
+    // int fopen(archivo, modo);
+    $archivo = fopen("archivo.txt", "r");
+
+| Modo | Descripción |
+| :--: | ----------- |
+| r | Abre un archivo para sólo lectura. El cursor comienza al principio del archivo. |
+| r+ | Apertura para lectura y escritura; coloca el puntero al fichero al principio del fichero. |
+| w | Apertura para sólo escritura; coloca el puntero al fichero al principio del fichero y trunca el fichero a longitud cero. Si el fichero no existe se intenta crear. |
+| w+ | Apertura para lectura y escritura; coloca el puntero al fichero al principio del fichero y trunca el fichero a longitud cero. Si el fichero no existe se intenta crear. |
+| a | Apertura para sólo escritura; coloca el puntero del fichero al final del mismo. Si el fichero no existe, se intenta crear. |
+| a+ | Apertura para lectura y escritura; coloca el puntero del fichero al final del mismo. Si el fichero no existe, se intenta crear. |
+| x | Crea un nuevo archivo para sólo lectura. Retorna `false` y un error si el archivo existe. |
+| x+ | Creación y apertura para lectura y escritura; de otro modo tiene el mismo comportamiento que **x** |
+
+### Cerrar archivos  
+`fclose()`  
+Nos permite cerrar un archivo abierto  
+*fclose* requiere el indicador del archivo a ser cerrado (la variable que referencia al archivo)  
+Retorna `true` si tuvo éxito, `false` caso contrario
+
+    $archivo = fopen("archivo.txt", "r");
+    // Trabajamos con el archivo
+    fclose($archivo);
+
+### Leer archivos  
+`fread()`  
+Nos permite leer de un archivo abierto  
+El primer parámetro de *fread* contiene el indicador del archivo a ser leído, y el segundo especifica el número máximo de bytes que serán leídos  
+Retorna un string que representa al contenido del archivo leído.
+
+    $archivo = fopen("archivo.txt", "r");
+    echo fread($archivo, filesize("archivo.txt"));
+    // Lee el archivo completo
+
+`fgets()`  
+Nos permite leer *una linea* de un archivo abierto  
+Requiere como parámetro el indicador del archivo a ser leído, y retorna un string que representa la línea que fue leída  
+Después de cada llamada a *fgets*, el cursor se mueve a la siguiente linea
+
+    $archivo = fopen("archivo.txt", "r");
+    echo fgets($archivo);
+
+### Escribir archivos  
+`fwrite()` `fputs()`  
+Nos permite escribir en un archivo abierto  
+La función parará cuando llegue al fin del archivo o cuando alcance la longitud especificada  
+El primer parámetro contiene el archivo a ser leído, y el segundo es el string a ser escrito. El tercer parámetro es opcional e indica la cantidad de bytes a ser escritos  
+Retorna la *cantidad de bytes* que se escribieron o `false` si hubo error.
+
+    // Usando fwrite()
+    $archivo = fopen("archivo.txt", "w");
+    echo fwrite($archivo, "Prueba de guardado");
+    fclose($archivo);
+    // Usando fgets()
+    $archivo = fopen("archivo.txt", "w");
+    echo fputs($archivo, "Prueba de guardado");
+    fclose($archivo);
+
+### Copiar archivos  
+`copy()`  
+Permite copiar un archivo  
+Los parámetros que recibe son los nombres de los archivos. El primero es el archivo origen, luego el destino de la copia  
+Retorna `true` en caso de éxito o `false` en caso contrario.
+
+    echo copy("archivoACopiar.txt", "archivoCopiado.txt");
+
+## Envío de datos
+
+### HTTP (HyperText Transfer Protocol)
+
+**HTTP** está diseñado para permitir comunicaciones entre clientes y servidores.
+
+**HTTP** funciona como un protocolo de pedido-respuesta entre cliente y servidor.
+
+Un navegador web puede ser el cliente y una aplicación sobre un computador que aloja un sitio web puede ser un servidor.
+
+### HTTP - Método GET  
+El par de nombres/valores es enviado en la dirección *URL* (texto claro)  
+Las peticiones `GET` se pueden almacenar en caché  
+Permanecen en el historial del navegador  
+Pueden ser marcadas (book marked)  
+Nunca debe ser utilizado cuando se trata de datos confidenciales  
+Tiene limitaciones de longitud de datos (longitud máxima de 2048 caracteres en la URL).
+
+### HTTP - Método POST  
+El par de nombres/valores es enviado en el cuerpo del mensaje **HTTP**  
+Las peticiones `POST` no se almacenan en caché  
+No permanecen en el historial del navegador  
+No pueden ser marcadas  
+No poseen restricciones de longitud de datos.
+
+### HTTP - Manejo de formularios  
+Tanto `GET` como `POST` crean un array asociativo  
+Dicho array contiene pares de clave-valor, donde las claves son los nombres (atributo `name`) de los controles del formulario y los valores son la entrada de datos del usuario.
+
+**PHP** utiliza las super globales `$_GET`, `$_POST` y `$_REQUEST` para recolectar datos provenientes de un Form.
+
+`$_GET` es un array pasado por **GET**. `$_POST` es un array pasado por **POST**.
+
+`$_REQUEST` es un array asociativo que contiene `$_GET`, `$_POST` y `$_COOKIE`
