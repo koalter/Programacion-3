@@ -15,8 +15,13 @@ class Auto {
         if (is_numeric($precio)) {
             $this->_precio = $precio;
         }
-        if ($fecha != null && is_a($fecha, 'DateTime')){
-            $this->_fecha = $fecha->format('d/m/y');
+        if ($fecha != null) {
+            if (is_a($fecha, 'DateTime')) {
+                $this->_fecha = $fecha->format('d/m/y');
+            }
+            else if (is_string($fecha)) {
+                $this->_fecha = $fecha;
+            }
         } else {
             $this->_fecha = date_create()->format('d/m/y');
         }
@@ -63,21 +68,17 @@ class Auto {
             fclose($archivo);
         }
     }
-
-    public static function LeerArchivo() {
+    
+    public static function LeerArchivo() { // con fgets y explode
         $autos = array();
 
         if (file_exists('autos.csv')) {
             $archivo = fopen('autos.csv', 'r');
             
-            # Con fgets + explode
-            // con fgetcsv
             while (!feof($archivo)) {
-                $cursor = fgets($archivo); #
-                // $objeto = fgetcsv($archivo); //
-				if ($cursor) { #
-                // if ($objeto) { //
-					$objeto = explode(',', $cursor); #
+                $cursor = fgets($archivo);
+				if ($cursor) {
+					$objeto = explode(',', $cursor);
 					$autos[] = new Auto($objeto[0], $objeto[1], $objeto[2], $objeto[3]);
 				}
             }
@@ -86,5 +87,28 @@ class Auto {
         }
 
         return $autos;
+    }
+    /*
+    public static function LeerArchivo() { // con fgetcsv
+        $autos = array();
+
+        if (file_exists('autos.csv')) {
+            $archivo = fopen('autos.csv', 'r');
+            
+            while (!feof($archivo)) {
+                $objeto = fgetcsv($archivo);
+                if ($objeto) {
+					$autos[] = new Auto($objeto[0], $objeto[1], $objeto[2], $objeto[3]);
+				}
+            }
+
+            fclose($archivo);
+        }
+
+        return $autos;
+    }
+    */
+    public function GetPropiedades() {
+        return get_object_vars($this);
     }
 }

@@ -26,13 +26,17 @@ Auto::AltaAuto($auto3);
 $autosLeidosDelArchivo = Auto::LeerArchivo();
 
 $resultado = '';
-if ($autosLeidosDelArchivo[0] == $auto1 &&
-    $autosLeidosDelArchivo[1] == $auto2 &&
-    $autosLeidosDelArchivo[2] == $auto3) {
+if ($autosLeidosDelArchivo[0]->Equals($auto1) &&
+    $autosLeidosDelArchivo[1]->Equals($auto2) &&
+    $autosLeidosDelArchivo[2]->Equals($auto3)) {
     $resultado = 'TEST APROBADO!';
 }
 else {
     $resultado = 'TEST FALLIDO!!!';
 }
 
-echo $resultado;
+echo $resultado . '<br/><br/>';
+
+foreach ($autosLeidosDelArchivo as $auto) {
+    echo Auto::MostrarAuto($auto) . '<br/>';
+}
