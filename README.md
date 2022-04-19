@@ -61,6 +61,12 @@ Tambien pueden llevar una estructura de clave=>valor:
             //codigo
         }
 
+### Getters y Setters
+
+`__set()` se ejecuta al escribir datos sobre propiedades inaccesibles (protegidas o privadas) o inexistentes.
+
+`__get()` se utiliza para consultar datos a partir de propiedades inaccesibles (protegidas o privadas) o inexistentes.
+
 ### Incluir archivos en PHP (declaraciones include/require)
 Ambas declaraciones `include` y `require` son idénticas, excepto en caso de falla
 * `require` producirá un error fatal (E_COMPILE_ERROR) y frenará el script.
@@ -437,3 +443,71 @@ Para borrar una cookie se debe asegurar que la fecha de expiración ya ha pasado
 
 #### Demo 
 https://phpsandbox.io/e/x/k6qms
+
+### Base de datos - SQL
+
+#### Generalidades - Instrucciones SQL
+
+Se utilizan para agregar, quitar, cambiar o recuperar información de una base de datos.
+
+* `SELECT` - Consulta campos y/o registros de la BD que safisfagan un criterio determinado.
+* `INSERT` - Agrega un registro a una tabla de una BD.
+* `UPDATE` - Modifica los valores de campos de la BD que satisfagan un criterio determinado.
+* `DELETE` - Elimina registros de una tabla de una BD.
+
+Se deben tener los permisos adecuados.
+
+#### Sentencias - SELECT
+
+La sentencia `SELECT` es usada para seleccionar registros desde una tabla de la base de datos. Sintaxis: `SELECT columna1, columna2, ... FROM tabla_nombre;`
+
+    -- Ejemplo seleccionar registros de la tabla usuarios
+    -- Todos los campos de la tabla
+    SELECT * FROM usuarios;
+    -- Solo los campos nombre y apellido
+    SELECT nombre, apellido FROM usuarios;
+
+#### Sentencias - Cláusula WHERE
+
+Es utilizada para seleccionar datos condicionalmente en base a criterios especificados. Sintaxis: `SELECT * FROM tabla_nombre WHERE condicion;`
+
+    -- Ejemplo seleccionar registros condicionales de tabla usuarios
+    SELECT * FROM usuarios
+    WHERE apellido = 'Diaz';
+
+    SELECT * FROM usuarios
+    WHERE fecha_nacimientos > '1/1/1970';
+
+    SELECT * FROM usuarios
+    WHERE fecha_nacimientos >= '1/1/1970';
+
+#### DEMO
+
+https://www.db-fiddle.com/f/wxfc4oKsn6S3dW2V6VZDrF/1
+
+#### Sentencias - INSERT
+
+Es utilizada para poder insertar registros en una tabla de la BD. Sintaxis: `INSERT INTO table_name (columna1, columna2, ...) VALUES (valor1, valor2, ...);`
+
+    -- Ejemplo insertar registros de la tabla usuarios
+    INSERT INTO usuarios (nombre, apellido, fecha_nacimiento)
+    VALUES ('Jorge', 'Diaz', '1969-07-11');
+
+#### Sentencias - UPDATE
+
+Es utilizada para poder actualizar registros en una tabla de la BD. Sintaxis: `UPDATE table_name SET (columna1 = valor1, columna2 = valor2, ...) WHERE condicion;`.
+
+    -- Ejemplo actualizar registros de la tabla usuarios
+    UPDATE usuarios SET nombre = 'Jorgecito', apellido = 'Diaaz'
+    WHERE apellido = 'Diaz';
+
+#### Sentencias - DELETE
+
+Es utilizada para poder remover registros en una tabla de la BD. Sintaxis: `DELETE FROM table_name WHERE condicion;`
+
+    -- Ejemplo remover registros de la tabla usuarios
+    DELETE FROM usuarios WHERE apellido = 'Diaz';
+
+#### DEMO
+
+https://www.db-fiddle.com/f/is8eAXQJSn4zCQnQxhFGkS/1

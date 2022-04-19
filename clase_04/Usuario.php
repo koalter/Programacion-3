@@ -5,7 +5,7 @@ class Usuario
     private $_nombre;
     private $_clave;
     private $_mail;
-    // private $_foto;
+    private $_foto;
     private $_fechaAlta;
 
     public function __construct($nombre, $clave, $mail, $foto = null)
@@ -206,6 +206,7 @@ class Usuario
         return $resultado;
     }
 
+    // Para deprecar
     public static function ListarUsuarios($usuarios) 
     {
         if ($usuarios != null && is_array($usuarios) && count($usuarios) > 0) 
@@ -213,13 +214,10 @@ class Usuario
             $stringBuilder = array("<ul>");
             foreach ($usuarios as $usuario) 
             {
-                if (is_a($usuario, "Usuario")) 
-                {
-                    $stringBuilder[] = "<li>" . implode(", ", get_object_vars($usuario)) . "</li>";
-                }
+                $stringBuilder[] = "<li>" . implode(", ", get_object_vars($usuario)) . "</li>";
             }
             $stringBuilder[] = "</ul>";
-
+            
             return implode($stringBuilder);
         }
         return null;
