@@ -1,0 +1,24 @@
+<?php
+require '../Utils/StringUtils.php';
+require '../Utils/JsonUtils.php';
+require '../Utils/FileUtils.php';
+require './StringUtilsTests.php';
+
+StringUtilsTests::Cut_DefaultParameters();
+StringUtilsTests::Cut_WhenFirstParameterIsEmpty_ShouldThrowException();
+StringUtilsTests::Cut_WhenFourthParmeterIsTrue_ShouldReturnStringToTheLeftWithSeparator();
+StringUtilsTests::Cut_WhenSecondParameterExceedsOneCharacter_ShouldThrowException();
+StringUtilsTests::Cut_WhenThirdAndFourthParmeterAreTrue_ShouldReturnStringToTheRightWithSeparator();
+StringUtilsTests::Cut_WhenThirdParmeterIsTrue_ShouldReturnStringToTheRight();
+StringUtilsTests::IsNullOrWhitespace_WhenParamIsEmpty_ShouldReturnTrue();
+StringUtilsTests::IsNullOrWhitespace_WhenParamIsNumeric_ResultShouldBeFalse();
+StringUtilsTests::IsNullOrWhitespace_WhenParamIsNull_ShouldReturnTrue();
+StringUtilsTests::IsNullOrWhitespace_WhenParamIsString_ShouldReturnFalse();
+StringUtilsTests::IsNullOrWhitespace_WhenParamIsWhitespace_ShouldReturnTrue();
+StringUtilsTests::Standarize_WhenParamIsStringWithWhitepaceAndUppercase_ResultShouldBeStandarized();
+StringUtilsTests::Standarize_WhenParamIsWhitepace_ResultShouldBeEmpty();
+StringUtilsTests::ValidateEmail_WhenParamHasDoubleAt_ResultShouldBeFalse();
+StringUtilsTests::ValidateEmail_WhenParamHasNoAt_ResultShouldBeFalse();
+StringUtilsTests::ValidateEmail_WhenParamHasNoDomain_ResultShouldBeFalse();
+StringUtilsTests::ValidateEmail_WhenParamIsValidString_ResultShouldBeTrue();
+StringUtilsTests::ValidateEmail_WhenParamStartsWithAt_ResultShouldBeFalse();
