@@ -105,6 +105,17 @@ class Venta implements JsonSerializable
         return VentaDAO::ModificarVenta($pedido, $email, $sabor, $tipo, $cantidad);
     }
 
+    public static function ModificarVenta_v2(int $pedido, string $email, string $sabor, string $tipo, int $cantidad)
+    {
+        $registro = VentaDAO::GetOne($pedido);
+        if ($registro && VentaDAO::ModificarVenta($pedido, $email, $sabor, $tipo, $cantidad) === 1)
+        {
+            $input = './ImagenesDeLaVenta/'.$registro->tipo.'+'.$registro->sabor.'+'.StringUtils::Cut($registro->email, '@', false, true).' '.StringUtils::DateToString($registro->fecha);
+            $output = $tipo.'+'.$sabor.'+'.StringUtils::Cut($email, '@', false, true).' '.StringUtils::DateToString($registro->fecha);
+            FileUtils::MoverArchivo($input, './ImagenesDeLaVenta/', $output);
+        }
+    }
+
     public static function BorrarVenta(int $pedido)
     {
         $resultado = false;
