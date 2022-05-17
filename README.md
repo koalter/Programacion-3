@@ -681,3 +681,120 @@ Sintaxis: `fetch($fetch_style?)`
 `fetchAll()` - Devuelve un array que contiene todas las filas de un conjunto de resultados. El parámetro *fetch_style* determina cómo **PDO** devuelve la fila.
 
 Sintaxis: 
+
+## Segunda parte
+
+### REST - Representational State Transfer
+
+Es un tipo de arquitectura de desarrollo web que se apoya totalmente en el estándar *HTTP*.
+
+**REST** nos permite crear servicios y aplicaciones que pueden ser usadas por cualquier dispositivo o cliente que entienda **HTTP**, por lo que es increíblemente más simple y convencional que otras alternativas que se han usado en los últimos diez años como **SOAP** y **XML-RPC**
+
+Por lo tanto **REST** es el tipo de arquitectura más natural y estándar para crear **API**s para servicios orientados a Internet.
+
+**REST** es un conjunto de convenciones para aplicaciones web y servicios web, que se centra principalmente en la manipulación de recursos a través de especificaciones **HTTP**.
+
+Podemos decir que **REST** es una interfaz web estándar y simple que nos permite interactuar con servicios web de una manera muy cómoda.
+
+Gracias a **REST** la web ha disfrutado de escalabilidad como resultado de una serie de diseños fundamentales clave:
+
+### Un protocolo cliente/servidor **sin estado**:
+Cada mensaje **HTTP** contiene toda la información necesaria para comprender la petición.
+
+Como resultado, ni el cliente ni el servidor necesitan recordar ningun estado de las comunicaciones entre mensajes.
+
+### Un conjunto de operaciones **bien definidas**:
+Que se aplican a todos los recursos de información: **HTTP** en sí define un conjunto pequeño de operaciones, las más importantes son *POST*, *GET*, *PUT* y *DELETE*.
+
+### Composer
+
+*Composer* es una herramienta para la gestión de dependencias de **PHP**.
+
+Permite declarar las bibliotecas de las que depende tu proyecto y las administrará (instalará/actualizará) para vos.
+
+https://getcomposer.org/download/
+
+*Nota personal: es el npm de PHP*
+
+### Slim Framework
+
+Slim es un framework micro de PHP que ayuda a escribir rápidamente aplicaciones Web y APIs sencillas pero poderosas.
+
+En esencia, Slim es un despachador que recibe una solicitud HTTP, invoca una rutina de devolución de llamada apropiada y devuelve una respuesta HTTP.
+
+https://www.slimframework.com/docs/start/installation.html
+
+*Nota personal: es el Express de PHP*
+
+#### Configurar **index.php**
+
+En este archivo se pondrán los verbos HTTP que se recibirán y las rutas por las cuales vamos a poder acceder a ellos.
+
+    use Psr\Http\Message\ResponseInterface as Response;
+    use Psr\Http\Message\ServerRequestInterface as Request;
+    use Psr\Http\Server\RequestHandlerInterface;
+    use Slim\Factory\AppFactory;
+    use Slim\Routing\RouteCollectorProxy;
+    use Slim\Routing\RouteContext;
+
+    // Instanciar App
+    $app = AppFactory::create();
+
+Definir el conjunto de operaciones son: **POST**, **GET**, **PUT** y **DELETE**
+
+    // Instanciar App
+    $app = AppFactory::create();
+
+    // Rutas
+    $app->group('/usuarios', function (RouteCollectorProxy $group) {
+        $group->get('[/]', \UsuarioController::class . ':TraerTodos');
+        $group->get('/{usuario}', \UsuarioController::class . ':TraerUno');
+        $group->post('[/]', \UsuarioController::class . ':CargarUno');
+    });
+    $app->get('[/]', function (Request $request, Response $response) {
+        $response->getBody()->write("Slim Framework 4 PHP");
+        return $response;
+    });
+    $app->run();
+
+Todas las peticiones de HTTP son atendidas por este archivo y no tendría que ponerse explícitamente en la ruta de acceso.
+
+Esto esta mal:  
+`http://localhost:8080/miApiRest/index.php/saludo`  
+Esto esta bien:  
+`http://localhost:8080/miApiRest/saludo`
+
+Para lograr esto se debe crear o modificar el archivo **".htaccess"**
+
+#### Configurar **.htaccess**
+
+Los ficheros .htaccess o "ficheros de configuración distribuída" facilitan la forma de realizar cambios en la configuración de contexto de un directorio.
+
+Un fichero, que contiene una o más directivas, se coloca en un documento específico de un directorio, y estas directivas aplican a ese directorio y todos sus subdirectorios.
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+
+#### Ruteo
+
+    $app->get('/libros', function ($request, $response, array $args) {
+        // Obtener libros
+    });
+    $app->get('/libros/{id}', function ($request, $response, array $args
+        // Obtener libros por ID
+    });
+    $app->post('/libros', function ($request, $response, array $args) {
+        // Crear un libro
+    });
+    $app->put('/libros/{id}', function ($request, $response, array $args) {
+        // Actualizar libro por ID
+    });
+    $app->delete('/libros/{id}', function ($request, $response, array $args) {
+        // Borrar libros por ID
+    }):
+
+Más ejemplos de ruteo:
+
+https://www.slimframework.com/docs/v4/objects/routing.html
