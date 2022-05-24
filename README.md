@@ -798,3 +798,173 @@ Un fichero, que contiene una o más directivas, se coloca en un documento espec�
 Más ejemplos de ruteo:
 
 https://www.slimframework.com/docs/v4/objects/routing.html
+
+### Middleware - PSR7 PSR15
+
+**Middleware** es un software que asiste a una aplicación para interactuar o comunicarse con otras aplicaciones, software, redes, hardware y/o sistemas operativos.
+
+Un middleware implementa la interface **PSR15**:
+
+* `\Psr\Http\Message\ServerRequestInterface` - El objeto de solicitud PSR7 (parámetro).
+* `\Psr\Http\Server\RequestHandlerInterface` - El objeto controlador de solicitudes PSR15 (parámetro).
+* `\Psr\Http\Message\ResponseInterface` - El objeto de respuesta PSR7 (retorno).
+
+#### PHP Standards Recommendations.
+
+Documentación oficial:
+
+* http://www.php-fig.org/psr/psr-7/
+* http://www.php-fig.org/psr/psr-15/
+
+Un mensaje HTTP es una petición de un cliente a un servidor o una respuesta de un servidor a un cliente.
+
+Estas especificaciones definen interfaces para los mensajes HTTP:
+
+* `Psr\Http\Message\RequestInterface` (PSR7)
+* `Psr'Http\Message\RequestHandlerInterface` (PSR15)
+
+El único requisito es que un middleware DEBE devolver una instancia de \Psr\Http\Message\\**ResponseInterface**.
+
+Cada middleware DEBERÍA invocar al siguiente middleware y pasarle los objetos Request y Response como argumentos*
+
+\**A partir de Slim 4 los parámetros son el Request y un Handler*
+
+### Middleware en Slim 4
+
+En Slim, podemos ejecutar código antes y después de una llamada a nuestra API-Rest, para poder manipular los objetos Request y Response como mejor nos parezca.
+
+Esto se realiza por medio de un middleware.
+
+Posibles usos:
+
+* Proteger la aplicación de la falsificación de solicitudes cruzadas.
+* Autenticar las solicitudes antes de ejecutar su aplicación.
+
+Slim añade middleware como capas concéntricas que rodean su aplicación principal.
+
+Cada nueva capa de middleware rodea cualquier capa de middleware existente.
+
+La estructura concéntrica se expande hacia afuera a medida que se añaden capas de middleware adicionales.
+
+La última capa de middleware agregada es la primera en ser ejecutada.
+
+![Esquema de ejecución middleware](https://www.slimframework.com/docs/v4/images/middleware.png)
+
+Para definir la función se debe respetar la *firma* de la estandarización PSR15
+
+    $mwUno = function (Request $request, RequestHandler $handler) : ResponseMW {
+
+        //EJECUTO ACCIONES ANTES DE INVOCAR AL VERBO
+        $antes = " en MW_UNO antes del callable <br>";
+
+        //INVOCO AL VERBO
+        $response = $handler->handle($request);
+
+        //OBTENGO LA RESPUESTA DEL VERBO
+        $contenidoAPI = (string) $response->getBody();
+
+        //GENERO UNA NUEVA RESPUESTA
+        $response = new ResponseMW();
+
+        //EJECUTO ACCIONES DESPUES DE INVOCAR AL VERBO
+        $despues = " en MW_UNO después del callable <br>";
+
+        $response->getBody()->write("{$antes} {$contenidoAPI} <br> {$despues}");
+
+        return $response;
+    }
+
+Para agregarla, se hace con el método de instancia add(), de application, route, map o group.
+
+    $app->add($mwUno);
+
+### Middleware - Route
+
+El *middleware de ruta* solo se invoca si su ruta coincide con el método de solicitud HTTP actual y la URI.
+
+Este middleware es ejecutado inmediatamente después de invocar cualquiera de los métodos de enrutamiento de la aplicación Slim (por ejemplo, get o post).
+
+El middleware se agrega con el método add() de la instancia Route.
+
+    $app->put('/param/', function (Request $request, Response $response, array $args) : Response {
+        $response->getBody()->("API => PUT");
+        return $response;
+    })->add(function (Request $request, RequestHandler $handler): ResponseMW {
+
+        //EJECUTO ACCIONES ANTES DE INVOCAR AL SIGUIENTE MIDDLEWARE
+        $antes = " en MW_PUT antes del callable <br>";
+
+        //INVOCO AL SIGUIENTE MW
+        $response = $handler->handle($request);
+
+        //OBTENGO LA RESPUESTA DEL MW
+        $contenidoAPI = (string) $response->getBody();
+
+        //GENERO UNA NUEVA RESPUESTA
+        $response = new ResponseMW();
+
+        //EJECUTO ACCIONES DESPUES DE INVOCAR AL SIGUIENTE MW
+        $despues = " en MW_PUT después del callable ";
+
+        $response->getBody()->write("{$antes} {$contenidoAPI} <br> {$despues}");
+
+        return $response;
+    });
+
+### Middleware - Group
+
+Los middlewares, además de poder agregarse a la aplicación y a las rutas, pueden también agregarse a los métodos de grupos, como a las rutas individuales internas.
+
+El *middleware de grupo* solo se invoca si su ruta coincide con uno de los métodos de solicitud HTTP definidos y los URI del grupo.
+
+ Para agregar el middleware dentro de un *callback* individual o para todo el grupo, se establecerá mediante el método de instancia add().
+
+    $grupo->get('/hora', function (Request $request, Response $response, array $args) : Response {
+        $response->getBody()->(date("H:i:s"));
+        return $response;
+    })->add(function (Request $request, RequestHandler $handler): ResponseMW {
+
+        //EJECUTO ACCIONES ANTES DE INVOCAR AL SIGUIENTE MIDDLEWARE
+        $antes = " en MW_GRUPO_DOS antes del callable <br>";
+
+        //INVOCO AL SIGUIENTE MW
+        $response = $handler->handle($request);
+
+        //OBTENGO LA RESPUESTA DEL MW
+        $contenidoAPI = (string) $response->getBody();
+
+        //GENERO UNA NUEVA RESPUESTA
+        $response = new ResponseMW();
+
+        //EJECUTO ACCIONES DESPUES DE INVOCAR AL SIGUIENTE MW
+        $despues = " en MW_GRUPO_DOS después del callable ";
+
+        $response->getBody()->write("{$antes} {$contenidoAPI} <br> {$despues}");
+
+        return $response;
+    });
+
+### Middleware - Map
+
+    $app->map(['GET', 'POST'], '/mapeado', function (Request $request, Response $response, array $args) : Response {
+        $response->getBody()->write("API => GET o POST");
+        return $response;
+    })->add(function (Request $request, RequestHandler $handler) : ResponseMW {
+        if ($request->getMethod() === 'GET') {
+            $respuesta = 'Entro por GET';
+        } else if ($request->getMethod() === 'POST') {
+            $respuesta = 'Entro por POST';
+        }
+
+        //INVOCO AL SIGUIENTE MW
+        $response = $handler->handle($request);
+
+        //OBTENGO LA RESPUESTA DEL MW
+        $contenidoAPI = (string) $response->getBody();
+
+        //GENERO UNA NUEVA RESPUESTA
+        $response = new ResponseMW();
+
+        $response->getBody()->write("{$respuesta} <br> {$contenidoAPI}");
+    });
+
