@@ -829,7 +829,7 @@ Cada middleware DEBERÍA invocar al siguiente middleware y pasarle los objetos R
 
 \**A partir de Slim 4 los parámetros son el Request y un Handler*
 
-### Middleware en Slim 4
+## Middleware en Slim 4
 
 En Slim, podemos ejecutar código antes y después de una llamada a nuestra API-Rest, para poder manipular los objetos Request y Response como mejor nos parezca.
 
@@ -968,3 +968,200 @@ El *middleware de grupo* solo se invoca si su ruta coincide con uno de los méto
         $response->getBody()->write("{$respuesta} <br> {$contenidoAPI}");
     });
 
+## JSON Web Token
+
+### Autenticación con Tokens
+
+Una de las nuevas tendencias es la autenticación por medio de *Tokens* y que el backend sea un API RESTful.
+
+Funcionamiento:
+* El usuario se autentica con usuario/contraseña o a través de un proveedor (como Twitter, Facebook o Google).
+* A partir de entonces, cada petición HTTP que haga el usuario va acompañada de un *Token* en la cabecera.
+* Este Token no es más que una firma cifrada que le permite al API identificar al usuario.
+* Pero este Token no se almacena en el servidor, si no del lado del cliente (en el *localStorage* o *sessionStorage*) y el API es el que se encarga de descifrar ese Token y redirigir el flujo de la aplicación en un sentido u otro.
+
+* Como los tokens son almacenados en el lado del cliente, no hay información de estado y la aplicación se vuelve totalmente escalable.
+* Se puede usar el mismo API para diferentes aplicaciones (Web, Mobile, Android, iOS, etc.)
+    - Solo hay que enviar los datos en formato JSON y cifrar/descifrar tokens en la autenticación y posteriores peticiones HTTP, a través de un **MIDDLEWARE**
+* También añade más seguridad:
+    - Al no utilizar cookies para almacenar la información del usuario, se evita ataques **CSRF** (*Cross-Site Request Forgery*) que manipulen la sesión que se envía al backend.
+
+### JWT
+
+Un *JSON Web Token* (o **JWT**) es un estándar abierto (RFC-7519) basado en JSON para crear un token que sirva para enviar datos entre aplicaciones o servicios y garantizar que sean válidos y seguros.
+
+Un JWT está compuesto por 3 partes:
+* El encabezado (header)
+* El payload
+* La firma (signature)
+
+### JWT - Header
+
+La primera parte es la cabecera del token, que a su vez tiene otras dos partes:
+* El tipo, en este caso un JWT
+* y la codificación utilizada. Comunmente es el algoritmo HMAC SHA256.
+
+El contenido sin codificar es el siguiente:
+
+    {
+        "typ": "JWT",
+        "alg": "HS256"
+    }
+
+Codificado...
+
+    eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+
+### JWT - Payload
+
+El *Payload* está compuesto por los llamados **JWT Claims** donde irán colocados los atributos que definen al token.
+
+Los más comunes a utilizar son:
+* sub: Identifica el sujeto del token. Ej. Id de usuario.
+* iat: Identifica la fecha de creación del token, válido si se quiere poner una fecha de caducidad. En formato de tiempo UNIX.
+* exp: Identifica a la fecha de expiración del token. Se calcula a partir del iat. También en formato de tiempo UNIX.
+
+Al payload se le pueden agregar más campos, incluso personalizados.
+
+    {
+        "sub": "54a8ce618e91b0b13665e2f9",
+        "iat": "1424180484",
+        "sub": "1425398142",
+        "admin": true,
+        "rol": 1
+    }
+
+Codificado...
+
+    eyJzdWIiOiIxNDI1Mzk4MTQyIiwiaWF0IjoiMTQyNDE4MDQ4NCIsImFkbWluIjp0cnVlLCJyb2wiOjF9
+
+### JWT - Signature
+
+La firma es la tercera y última parte del JWT.
+
+Está formada por los anteriores componentes (Header y Payload) cifrados en *Base64* con una clave secreta (almacenada en nuestro backend).
+
+Así sirve de *Hash* para comprobar que todo está bien.
+
+    HMACSHA256(
+        base64UrlEncode(header) + "." +
+        base64UrlEncode(payload),
+        miClaveSecreta
+    )
+
+Codificado...
+
+    IxIIOGzBOwZGpz97QFRKG3_d8i1aSp31rfeP_XG6LXo
+
+### JWT Completo
+
+El JWT una vez codificado tendrá el siguiente aspecto:
+
+    eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxNDI1Mzk4MTQyIiwiaWF0IjoiMTQyNDE4MDQ4NCIsImFkbWluIjp0cnVlLCJyb2wiOjF9.IxIIOGzBOwZGpz97QFRKG3_d8i1aSp31rfeP_XG6LXo
+
+Para verificar el JWT dirigirse hacia https://jwt.io
+
+### JWT - Ciclo de Vida
+
+
+#### Nota
+
+Es importante entender que el propósito de usar JWT **NO** es ocultar o ofuscar datos de ninguna manera.
+
+El motivo por el que se utiliza JWT es para demostrar que los datos enviados fueron realmente creados por una fuente auténtica.
+
+Los datos dentro de un JWT están **codificados** y **firmados**, no **cifrados**.
+
+El propósito de **codificar** datos es transformar la estructura de los mismos.
+
+Los datos firmados permiten que el receptor verifique la autenticidad de la fuente de los datos.
+
+Entonces, codificar y firmar datos **NO** protege los datos.
+
+Por otro lado, el objetivo principal del cifrado es proteger los datos y evitar el acceso no autorizado.
+
+#### Definiciones
+
+La codificación es para mantener la usabilidad de los datos y puede revertirse empleando el mismo algoritmo que codifica el contenido, es decir, no se utiliza ninguna clave.
+
+El cifrado es para mantener la confidencialidad de los datos y requiere el uso de una clave (mantenida en secreto) para volver a texto plano.
+
+*Hashing* es para validar la integridad del contenido mediante la detección de todas las modificaciones de los mismos mediante cambios obvios en la salida hash.
+
+La ofuscación se usa para evitar que las personas entiendan el significado de algo, y se usa a menudo con la ayuda de una computadora para evitar la ingeniería inversa exitosa y/o el robo de la funcionalidad de un producto.
+
+### JWT en Slim - Crear
+
+La creación de un JWT se realiza por medio del método estático *encode* de la clase **Firebase/JWT**
+
+    $app->post("/jwt/crearToken[/]", function (Request $request, Response $response, array $args) : Response {
+
+        $datos = $request->getParsedBody();
+        $ahora = time();
+
+        // PARAMETROS DEL PAYLOAD -- https://tools.ietf.org/html/rfc7519#section-4.1 --
+        // SE PUEDEN AGREGAR LOS PROPIOS, EJ. 'app'=> "API REST 2022"
+        $payload = array(
+            "iat" => $ahora,
+            "exp" => $ahora + (30),
+            "data" => $datos,
+            "app" => "API REST 2022"
+        );
+
+        // CODIFICO A JWT (PAYLOAD, CLAVE, ALGORITMO DE CODIFICACIÓN)
+        $token = JWT:encode($payload, "miClaveSecreta", "HS256");
+
+        $newResponse = $response->withStatus(200, "Éxito!!! JSON enviado.");
+
+        // GENERO EL JSON A PARTIR DEL ARRAY.
+        $newResponse->getBody()->write(json_encode($token));
+
+        // INDICO EL TIPO DE CONTENIDO QUE SE RETORNARÁ (EN EL HEADER).
+        return $newResponse->withHeader("Content-Type", "application/json");
+    });
+
+En nuestro ejemplo simple de 3 entidades, estamos utilizando un JWT que está firmado por el algoritmo HS256, donde solo el servidor de autenticación y el servidor de aplicaciones conocen la clave secreta. 
+
+El servidor de aplicaciones recibe la clave secreta del servidor de autenticación cuando la aplicación configura su proceso de autenticación. 
+
+Dado que la aplicación conoce la clave secreta, cuando el usuario hace una llamada a API asociada a JWT a la aplicación, la aplicación puede ejecutar el mismo algoritmo de firma que en el Paso 3 en el JWT. 
+
+La aplicación puede verificar que la firma obtenida de su propia operación hash coincida con la firma en el JWT mismo (es decir, que coincida con la firma JWT creada por el servidor de autenticación). 
+
+Si las firmas coinciden, entonces eso significa que el JWT es válido, lo que indica que la llamada API procede de una fuente auténtica. De lo contrario, si las firmas no coinciden, significa que el JWT recibido no es válido, lo que puede ser un indicador de un posible ataque a la aplicación. 
+
+Entonces al verificar el JWT, la aplicación agrega una capa de confianza entre él y el usuario.
+
+### JWT en Slim - Verificar
+
+La verificación del JWT se realiza por medio del método estático *decode* de la clase
+
+    $app->post("jwt/verificarToken[/]", function (Request $request, Response $response, array $args) : Response {
+        
+        $datos = $request->getParsedBody();
+        $token = $datos['token'];
+
+        $retorno = new stdClass();
+        $status = 200;
+
+        try {
+            // DECODIFICO EL TOKEN RECIBIDO
+            JWT:decode(
+                $token,             // JWT
+                "miClaveSecreta",   // CLAVE USADA EN LA CREACIÓN
+                ['HS256']           // ALGORITMO DE DECODIFICACIÓN
+            );
+
+            $retorno->mensaje = "Token OK!!!";
+        } catch (Exception $e) {
+            
+            $retorno->mensaje = "Token no válido!!! ---> " . $e->getMessage();
+            $status = 500;
+        }
+
+        $newResponse = $response->withStatus($status);
+
+        $newResponse->getBody()->write(json_encode($retorno));
+
+        return $newResponse->withHeader("Content-Type", "application/json");
+    });
